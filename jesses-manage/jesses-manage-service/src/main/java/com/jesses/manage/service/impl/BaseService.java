@@ -4,16 +4,16 @@ import com.github.abel533.entity.Example;
 import com.github.abel533.mapper.Mapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.jesses.manage.pojo.BasePojo;
 
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.util.Date;
 import java.util.List;
 
 /**
  * 通用的service
  */
-public abstract class BaseService<T> {
+public abstract class BaseService<T extends BasePojo> {
 
     /*
     如何给通用Service注入Mapper，
@@ -105,15 +105,78 @@ public abstract class BaseService<T> {
         return this.getMapper().selectByExample(example);
     }
 
+    /**
+     *插入数据
+     * @param record
+     * @return
+     */
+    public Integer save(T record){
+        record.setCreated(new Date());
+        record.setUpdated(record.getCreated());
+        return this.getMapper().insert(record);
+    }
 
-//1、	queryById
-//2、	queryAll
-//3、	queryOne
-//4、	queryListByWhere
-//5、	queryPageListByWhere
-//6、	save
-//7、	update
-//8、	deleteById
-//9、	deleteByIds
-//10、deleteByWhere
+    /**
+     * 插入数据，只操作数据的非空属性
+     * @param record
+     * @return
+     */
+    public Integer saveSelective(T record){
+        record.setCreated(new Date());
+        record.setUpdated(record.getCreated());
+        return this.getMapper().insertSelective(record);
+    }
+
+    /**
+     * 修改数据
+     * @param record
+     * @return
+     */
+    public Integer update(T record){
+        record.setUpdated(new Date());
+        record.setCreated(null);
+        return this.getMapper().updateByPrimaryKey(record);
+    }
+
+    /**
+     * 修改数据，只操作数据的非空属性
+     * @param record
+     * @return
+     */
+    public Integer updateSelective(T record){
+        record.setUpdated(new Date());
+        record.setCreated(null);
+        return this.getMapper().updateByPrimaryKeySelective(record);
+    }
+
+    /**
+     * 根据id删除单个
+     * @param id
+     * @return
+     */
+    public Integer deleteById(Long id){
+        return this.getMapper().deleteByPrimaryKey(id);
+    }
+
+    /**
+     * 删除多个
+     * @param property
+     * @param ids
+     * @return
+     */
+    public Integer deleteByIds(String property,List<Object> ids){
+        Example example = new Example(clazz);
+        example.createCriteria().andIn(property,ids);
+        return this.getMapper().deleteByExample(example);
+    }
+
+    /**
+     * 根据条件删除
+     * @param record
+     * @return
+     */
+    public Integer deleteByWhere(T record){
+        return this.getMapper().delete(record);
+    }
+
 }
